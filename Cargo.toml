@@ -1,0 +1,4 @@
+[package]
+name = "bittorrent"
+version = "0.1.0"
+authors = ["J. Aaron Gustafson <jag426@cornell.edu>"]
