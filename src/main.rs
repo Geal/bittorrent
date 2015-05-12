@@ -17,13 +17,13 @@ enum Bencode {
 }
 
 named!(i64_utf8<&[u8], i64>, chain!(
-        bytes: digit,
-        || {str::from_utf8(bytes).unwrap().parse::<i64>().unwrap()}
+ bytes: digit ,
+        ||{ str::from_utf8(bytes).unwrap().parse::<i64>().unwrap() }
 ));
 
 named!(u64_utf8<&[u8], u64>, chain!(
-        bytes: digit,
-        || {str::from_utf8(bytes).unwrap().parse::<u64>().unwrap()}
+ bytes: digit ,
+        ||{ str::from_utf8(bytes).unwrap().parse::<u64>().unwrap() }
 ));
 
 fn text(i:&[u8]) -> IResult<&[u8], Bencode> {
@@ -43,18 +43,30 @@ fn text(i:&[u8]) -> IResult<&[u8], Bencode> {
     }
 }
 
+named!(int<&[u8], Bencode>, chain!(
+        tag!("i") ~
+     n: i64_utf8  ~
+        tag!("e") ,
+        ||{ Bencode::Int(n) }
+));
+
+named!(list<&[u8], Bencode>, chain!(
+        tag!("l")       ~
+    bs: many0!(bencode) ~
+        tag!("e")       ,
+        ||{ Bencode::List(bs) }
+));
+
+named!(dict<&[u8], Bencode>, chain!(
+        tag!("d")              ~
+    ps: many0!(pair!(bencode, bencode)) ~
+        tag!("e")              ,
+        ||{ Bencode::Dict(ps) }
+));
+
+named!(bencode<&[u8], Bencode>, alt!(text | int | list | dict));
+
 fn main() {
-    match text(b"10:12345678905:12345") {
-        IResult::Done(rest, first) => {
-            match text(rest) {
-                IResult::Done(rest, second) => {
-                    println!("{:?}", first);
-                    println!("{:?}", second);
-                    println!("{:?}", rest);
-                }
-                _ => {}
-            }
-        }
-        _ => {}
-    }
+    let metainfo = b"ld3:fooi16e3:bari18eel5:fruit3:bar3:bati23eee";
+    print!("{:?}", bencode(metainfo));
 }
