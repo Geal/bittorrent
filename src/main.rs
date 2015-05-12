@@ -2,8 +2,10 @@
 
 #[macro_use]
 extern crate nom;
-
 use nom::{IResult, Needed, digit};
+
+extern crate sha1;
+use sha1::Sha1;
 
 use std::fs::File;
 use std::io::Read;
