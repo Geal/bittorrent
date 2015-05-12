@@ -12,7 +12,7 @@ use std::io::Read;
 use std::path::Path;
 use std::str;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum Bencode {
     Str(Vec<u8>),
     Int(i64),
@@ -69,6 +69,15 @@ named!(dict<&[u8], Bencode>, chain!(
 ));
 
 named!(bencode<&[u8], Bencode>, alt!(text | int | list | dict));
+
+#[derive(Clone, Debug)]
+struct Metainfo {
+    announce: String,
+    name: String,
+    piecelen: usize,
+    pieces: Vec<[u32; 5]>,
+    files: Vec<(usize, String)>,
+}
 
 fn main() {
     let mut f = File::open(&Path::new("/home/jagus/code/bittorrent/archlinux-2015.05.01-dual.iso.torrent")).unwrap();
