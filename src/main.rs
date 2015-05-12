@@ -5,12 +5,14 @@ extern crate nom;
 
 use nom::{IResult, Needed, digit};
 
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 use std::str;
-use std::string::String;
 
 #[derive(Debug)]
 enum Bencode {
-    Text(String),
+    Str(Vec<u8>),
     Int(i64),
     List(Vec<Bencode>),
     Dict(Vec<(Bencode, Bencode)>),
@@ -35,9 +37,9 @@ fn text(i:&[u8]) -> IResult<&[u8], Bencode> {
             if rest.len() < n+1 {
                 IResult::Incomplete(Needed::Size((n+1) as u32))
             } else {
-                let text = String::from_str(
-                    str::from_utf8(&rest[1..n+1]).unwrap());
-                IResult::Done(&rest[n+1..], Bencode::Text(text))
+                let mut v = vec!();
+                v.push_all(&rest[1..n+1]);
+                IResult::Done(&rest[n+1..], Bencode::Str(v))
             }
         }
     }
@@ -67,6 +69,9 @@ named!(dict<&[u8], Bencode>, chain!(
 named!(bencode<&[u8], Bencode>, alt!(text | int | list | dict));
 
 fn main() {
-    let metainfo = b"ld3:fooi16e3:bari18eel5:fruit3:bar3:bati23eee";
-    print!("{:?}", bencode(metainfo));
+    let mut f = File::open(&Path::new("/home/jagus/code/bittorrent/archlinux-2015.05.01-dual.iso.torrent")).unwrap();
+    println!("{:?}", f);
+    let mut v = Vec::new();
+    f.read_to_end(&mut v).ok();
+    println!("{:?}", bencode(&v[..]));
 }
