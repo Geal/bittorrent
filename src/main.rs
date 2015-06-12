@@ -246,19 +246,25 @@ mod tests {
     use super::*;
     use test::Bencher;
 
-    #[bench]
-    fn bench_parse_archlinux_metainfo(b: &mut Bencher) {
-        let mut f = File::open(&Path::new("archlinux-2015.05.01-dual.iso.torrent")).unwrap();
+    fn bench_parse_torrentfile(filename: &'static str, b: &mut Bencher) {
+        let mut f = File::open(&Path::new(filename)).unwrap();
         let mut v = Vec::new();
         f.read_to_end(&mut v).ok();
         b.iter(|| metainfo(&v[..]));
     }
 
     #[bench]
+    fn bench_parse_archlinux_metainfo(b: &mut Bencher) {
+        bench_parse_torrentfile("archlinux-2015.05.01-dual.iso.torrent", b);
+    }
+
+    #[bench]
     fn bench_parse_hitchcock_metainfo(b: &mut Bencher) {
-        let mut f = File::open(&Path::new("[kat.cr]alfred.hitchcock.masterpiece.collection.hdclub.torrent")).unwrap();
-        let mut v = Vec::new();
-        f.read_to_end(&mut v).ok();
-        b.iter(|| metainfo(&v[..]));
+        bench_parse_torrentfile("[kat.cr]alfred.hitchcock.masterpiece.collection.hdclub.torrent", b);
+    }
+
+    #[bench]
+    fn bench_parse_geocities_metainfo(b: &mut Bencher) {
+        bench_parse_torrentfile("[kat.cr]geocities.the.patched.torrent", b);
     }
 }
