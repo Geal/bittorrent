@@ -1,4 +1,6 @@
-#![feature(collections, collections_drain)]
+#![feature(collections, collections_drain, test)]
+
+extern crate test;
 
 #[macro_use]
 extern crate nom;
@@ -8,9 +10,7 @@ use nom::{IResult, Needed, be_u32, digit};
 //use sha1::Sha1;
 
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path; use std::str;
+use std::str;
 
 #[derive(Clone, Debug)]
 enum Bencode {
@@ -114,7 +114,7 @@ named!(hashes<&[u8], (Vec<Hash>)>, many0!(chain!(
 )));
 
 #[derive(Clone, Debug)]
-struct Metainfo {
+pub struct Metainfo {
     announce: String,
     name: String,
     piecelength: usize,
@@ -124,7 +124,7 @@ struct Metainfo {
     files: Option<Vec<(usize, String)>>,
 }
 
-fn metainfo(i:&[u8]) -> Metainfo {
+pub fn metainfo(i:&[u8]) -> Metainfo {
     let b = match bencode(i) {
         IResult::Done(_, b) => b,
         _ => panic!("Not a bencoding at all"),
@@ -197,10 +197,23 @@ fn metainfo(i:&[u8]) -> Metainfo {
     }
 }
 
+#[cfg(not(test))]
 fn main() {
-    let mut f = File::open(&Path::new("/home/jagus/code/bittorrent/archlinux-2015.05.01-dual.iso.torrent")).unwrap();
-    println!("{:?}", f);
-    let mut v = Vec::new();
-    f.read_to_end(&mut v).ok();
-    println!("{:?}", metainfo(&v[..]));
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+    use std::io::Read;
+    use std::path::Path;
+    use super::*;
+    use test::Bencher;
+
+    #[bench]
+    fn bench_parse_archlinux_metainfo(b:&mut Bencher) {
+        let mut f = File::open(&Path::new("archlinux-2015.05.01-dual.iso.torrent")).unwrap();
+        let mut v = Vec::new();
+        f.read_to_end(&mut v).ok();
+        b.iter(|| metainfo(&v[..]));
+    }
 }
