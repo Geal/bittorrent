@@ -1,4 +1,4 @@
-#![feature(collections, collections_drain, test)]
+#![feature(test,vec_push_all,drain)]
 
 extern crate test;
 
@@ -55,7 +55,7 @@ fn text(i: &[u8]) -> IResult<&[u8], Vec<u8>> {
         IResult::Done(rest, n) => {
             let n = n as usize;
             if rest.len() < n+1 {
-                IResult::Incomplete(Needed::Size((n+1) as u32))
+                IResult::Incomplete(Needed::Size(n+1))
             } else {
                 let mut v = vec!();
                 v.push_all(&rest[1..n+1]);
